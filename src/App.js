@@ -1,6 +1,7 @@
 import { Client } from 'boardgame.io/react';
 import { Game } from 'boardgame.io/core';
 import React from 'react';
+import { AI } from 'boardgame.io/ai';
 
 function IsVictory(cells) {
     const positions = [
@@ -49,6 +50,7 @@ const TicTacToe = Game({
   },
 
   flow: {
+      movesPerTurn: 1,
       endGameIf: (G, ctx) => {
           if (IsVictory(G.cells)) {
               return {winner: ctx.currentPlayer};
@@ -85,21 +87,13 @@ class TicTacToeBoard extends React.Component {
         );
     }
 
-    const cellStyle = {
-      border: '1px solid #555',
-      width: '50px',
-      height: '50px',
-      lineHeight: '50px',
-      textAlign: 'center',
-    };
-
     let tbody = [];
     for (let i = 0; i < 3; i++) {
       let cells = [];
       for (let j = 0; j < 3; j++) {
         const id = 3 * i + j;
         cells.push(
-          <td style={cellStyle} key={id} onClick={() => this.onClick(id)}>
+          <td class="cell" key={id} onClick={() => this.onClick(id)}>
             {this.props.G.cells[id]}
           </td>
         );
@@ -118,6 +112,20 @@ class TicTacToeBoard extends React.Component {
   }
 }
 
-const App = Client({ game: TicTacToe, board: TicTacToeBoard });
+const App = Client({
+    game: TicTacToe,
+    board: TicTacToeBoard,
+    ai: AI({
+        enumerate: (G, ctx) => {
+            let moves = [];
+            for (let i = 0; i < 9; i++) {
+                if (G.cells[i] === null) {
+                    moves.push({ move: 'clickCell', args: [i] });
+                }
+            }
+            return moves;
+        },
+    }),
+});
 
 export default App;
